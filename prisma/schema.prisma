@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int  @id @default(autoincrement())
+  nama String @db.VarChar(255)
+  email String @unique
+  password String
+  phoneNumber String
+  address String
+  role String
+  cart CartItems[]
+  order Order[]
+}
+
+model Produk {
+  id Int @id @default(autoincrement())
+  namaProduk String @db.VarChar(255)
+  harga Int
+  deskripsi String @db.Text
+  kategori String @db.VarChar(255)
+  gambar String @db.VarChar(255)
+  kuantitas Int
+  merek String
+  CartItems CartItems[]
+  OrderItems OrderItems[]
+}
+
+model CartItems {
+   id Int @id @default(autoincrement())
+   productID Int
+   userID Int
+   total Int
+   user User @relation(fields: [userID], references: [id], onDelete: Cascade )
+   product Produk @relation(fields: [productID], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id          String        @id @unique
+  userID      Int
+  grossAmount Int
+  user        User          @relation(fields: [userID], references: [id], onDelete: Cascade)
+  OrderItems  OrderItems[]
+}
+
+model OrderItems {
+  id        Int     @id @default(autoincrement())
+  productID Int
+  orderID   String
+  total     Int
+  product   Produk   @relation(fields: [productID], references: [id], onDelete: Cascade)
+  order     Order    @relation(fields: [orderID], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id         String        @id @default(uuid())
+  paymentUrl String        @db.Text
+  status     StatusTransaction
+  userId     Int
+  orderID    String        @unique
+}
+
+
+enum StatusTransaction {
+  SUCCESS
+  PENDING
+  EXPIRED
+  DECLINED
+}
